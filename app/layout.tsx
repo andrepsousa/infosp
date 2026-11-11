@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./vai-sp.css";
 
 export const metadata: Metadata = {
-  title: "infosp � Seu dia pela cidade",
-  description: "Clima, situa��o das linhas, mapas e not�cias �teis de S�o Paulo.",
+  title: "infosp — Seu dia pela cidade",
+  description: "Clima, situação das linhas, mapas e notícias úteis de São Paulo.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "infosp", statusBarStyle: "default" },
   icons: {

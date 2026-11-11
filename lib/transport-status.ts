@@ -38,8 +38,8 @@ function plain(value: unknown): string {
   if (typeof value !== "string") return "";
   const entities: Record<string, string> = {
     amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ",
-    aacute: "�", atilde: "�", acirc: "�", ccedil: "�", eacute: "�",
-    ecirc: "�", iacute: "�", oacute: "�", otilde: "�", ocirc: "�", uacute: "�",
+    aacute: "á", atilde: "ã", acirc: "â", ccedil: "ç", eacute: "é",
+    ecirc: "ê", iacute: "í", oacute: "ó", otilde: "õ", ocirc: "ô", uacute: "ú",
   };
   return value.replace(/<[^>]*>/g, " ")
     .replace(/&(#x[\da-f]+|#\d+|\w+);/gi, (match, entity: string) => {
@@ -86,7 +86,7 @@ export function parseMetro(html: string, confirmedAt: string): LineStatus[] {
     const reportedAt = sourceDate(card.match(/atualizado em ([\d/: ]+)/)?.[1]);
     // A timestamp is part of this feed's contract. Missing it indicates a changed markup.
     if (!reportedAt) continue;
-    const parsed = line(id, status, description, "Metr� � Direto do Metr�", "https://www.metro.sp.gov.br/sua-viagem/direto-metro/", reportedAt, reportedAt);
+    const parsed = line(id, status, description, "Metrô · Direto do Metrô", "https://www.metro.sp.gov.br/sua-viagem/direto-metro/", reportedAt, reportedAt);
     if (parsed) result.push(parsed);
   }
   return result;
@@ -167,7 +167,7 @@ async function upstream(url: string): Promise<{ text: string; confirmedAt: strin
 
 async function refresh(): Promise<TransportStatus> {
   const sources = [
-    { name: "Metr�", url: METRO_URL, parse: parseMetro },
+    { name: "Metrô", url: METRO_URL, parse: parseMetro },
     { name: "CPTM", url: CPTM_URL, parse: (text: string, at: string) => parseCptm(JSON.parse(text), at) },
     { name: "Trivia Trens", url: TRIVIA_URL, parse: (text: string, at: string) => parseOwnerFeed(JSON.parse(text), at, "trivia") },
     { name: "TIC Trens", url: TIC_URL, parse: (text: string, at: string) => parseTic(JSON.parse(text), at) },
@@ -177,14 +177,14 @@ async function refresh(): Promise<TransportStatus> {
   const outcomes = await Promise.allSettled(sources.map(async (source) => {
     const response = await upstream(source.url);
     const lines = source.parse(response.text, response.confirmedAt);
-    if (!lines.length) throw new Error("Formato de resposta n�o reconhecido");
+    if (!lines.length) throw new Error("Formato de resposta não reconhecido");
     return lines;
   }));
   const lines = new Map<number, LineStatus>();
   const errors: string[] = [];
   outcomes.forEach((outcome, index) => {
     if (outcome.status === "rejected") {
-      errors.push(`N�o foi poss�vel confirmar a situa��o na fonte ${sources[index].name}.`);
+      errors.push(`Não foi possível confirmar a situação na fonte ${sources[index].name}.`);
       return;
     }
     for (const item of outcome.value) lines.set(item.id, item);

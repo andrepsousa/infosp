@@ -2,11 +2,11 @@ export type News = { title: string; url: string; date: string; source: string; c
 export function cleanText(value: string) {
   return value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]*>/g, ' ').replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&#x([a-f\d]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;|&#039;/g, "'").replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
 }
-const publicInterest = /metr�|metrovi|cptm|trem|trens|esta�|�nibus|sptrans|rod�zio|interdi�|alagamento|temporal|chuva|defesa civil|poupatempo|vacina|linha \d|bilhete|tarifa|tr�nsito/i;
-const promotion = /governador|prefeito|secret�rio|elei�|partid|recorde de investimento|balan�o|premia|pr�mio|homenagem|conquista/i;
+const publicInterest = /metrô|metrovi|cptm|trem|trens|esta[cç]|ônibus|sptrans|rodízio|interdi[cç]|alagamento|temporal|chuva|defesa civil|poupatempo|vacina|linha \d|bilhete|tarifa|trânsito/i;
+const promotion = /governador|prefeito|secretário|elei[cç]|partid|recorde de investimento|balanço|premia|prêmio|homenagem|conquista/i;
 const feedSources = [
-  { url: 'https://www.metro.sp.gov.br/feed/', name: 'Metr� de S�o Paulo' },
-  { url: 'https://www.agenciasp.sp.gov.br/feed/', name: 'Ag�ncia SP' },
+  { url: 'https://www.metro.sp.gov.br/feed/', name: 'Metrô de São Paulo' },
+  { url: 'https://www.agenciasp.sp.gov.br/feed/', name: 'Agência SP' },
 ];
 export function parseFeed(xml: string, source: string): News[] {
   const items = [...xml.matchAll(/<item\b[^>]*>([\s\S]*?)<\/item>/gi)];
@@ -16,12 +16,12 @@ export function parseFeed(xml: string, source: string): News[] {
     const url = tag('link');
     const timestamp = Date.parse(tag('pubDate'));
     if (timestamp < Date.now() - 30 * 86400000) return [];
-    if (source === 'Ag�ncia SP' && !/capital|metropolitan|metr�|cptm|s�o paulo|defesa civil|estado de sp/i.test(title)) return [];
+    if (source === 'Agência SP' && !/capital|metropolitan|metrô|cptm|são paulo|defesa civil|estado de sp/i.test(title)) return [];
     if (!publicInterest.test(title) || promotion.test(title) || !/^https:\/\//.test(url) || !Number.isFinite(timestamp) || timestamp > Date.now() + 3600000) return [];
     const text = title + ' ' + tag('description');
-    const lineIds = [...text.matchAll(/(?:linha[s]?\s+|\b)(1[0-7]|[1-9])\s*[--]\s*(?:Azul|Verde|Vermelha|Amarela|Lil�s|Laranja|Rubi|Diamante|Esmeralda|Turquesa|Coral|Safira|Jade|Prata|Ouro)/gi)].map(m => Number(m[1]));
-    const category = /chuva|temporal|alagamento|defesa civil/i.test(title) ? 'Clima' : /metr�|cptm|trem|trens|esta�|�nibus|linha|bilhete|tarifa|rod�zio|tr�nsito|interdi�/i.test(title) ? 'Transporte' : 'Cidade';
-    return [{title, url, date: new Date(timestamp).toISOString(), source, category, lineIds: [...new Set(lineIds)], scheduled: /manuten�|interdi�|altera�|obras|opera�[�a]o especial|hor�rio|fim de semana/i.test(title)}];
+    const lineIds = [...text.matchAll(/(?:linha[s]?\s+|\b)(1[0-7]|[1-9])\s*[--]\s*(?:Azul|Verde|Vermelha|Amarela|Lilás|Laranja|Rubi|Diamante|Esmeralda|Turquesa|Coral|Safira|Jade|Prata|Ouro)/gi)].map(m => Number(m[1]));
+    const category = /chuva|temporal|alagamento|defesa civil/i.test(title) ? 'Clima' : /metrô|cptm|trem|trens|esta[cç]|ônibus|linha|bilhete|tarifa|rodízio|trânsito|interdiç/i.test(title) ? 'Transporte' : 'Cidade';
+    return [{title, url, date: new Date(timestamp).toISOString(), source, category, lineIds: [...new Set(lineIds)], scheduled: /manuten[cç]|interdi[cç]|altera[cç]|obras|operaç[ãa]o especial|horário|fim de semana/i.test(title)}];
   });
 }
 let cache: { time: number; value: { items: News[]; checkedAt: string; errors: string[] } } | undefined;
@@ -33,7 +33,7 @@ export async function getNews() {
       const response = await fetch(source.url, { signal: AbortSignal.timeout(8000) });
       if (!response.ok) throw new Error(String(response.status));
       const xml = await response.text();
-      if (!xml.includes('<rss')) throw new Error('Feed inv�lido');
+      if (!xml.includes('<rss')) throw new Error('Feed inválido');
       return parseFeed(xml, source.name);
     } catch { errors.push(source.name); return []; }
   }));
